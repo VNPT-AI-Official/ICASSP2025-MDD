@@ -1,0 +1,1727 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>PER-MDD: Mispronunciation Detection and Diagnosis Without Model Training | ICASSP 2025</title>
+
+    <meta name="description"
+        content="Mispronunciation Detection and Diagnosis Without Model Training: A Retrieval-Based Approach (ICASSP 2025). Huu Tuong Tu, Ha Viet Khanh, Tran Tien Dat, Vu Huan, Thien Van Luong, Nguyen Tien Cuong, Nguyen Thi Thu Trang.">
+    <meta property="og:title" content="PER-MDD: Mispronunciation Detection and Diagnosis Without Model Training">
+    <meta property="og:description"
+        content="A novel training-free Speech-RAG framework for Mispronunciation Detection and Diagnosis (MDD) published at ICASSP 2025.">
+    <meta property="og:image" content="images/icassp_conf_1.png">
+
+    <!-- Fonts: Newsreader for academic editorial serif, Inter for crisp UI -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,600&display=swap"
+        rel="stylesheet">
+
+    <!-- Bootstrap 4.6 & Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        :root {
+            --bg: #FAF8F4;
+            --bg-elevated: #FFFFFF;
+            --bg-subtle: #F2EFE8;
+            --ink: #1A1814;
+            --ink-soft: #5A554C;
+            --ink-faint: #8E8678;
+            --hairline: #E4DFD4;
+            --hairline-strong: #C8C2B3;
+            --accent: #005baa;
+            /* VNPT Blue */
+            --accent-rgb: 0, 91, 170;
+            --accent-soft: #eef5fc;
+            --accent-text: #004080;
+            --hust-red: #c8102e;
+            --success: #208752;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 18px;
+            --shadow-subtle: 0 4px 15px rgba(0, 0, 0, 0.05);
+            --shadow-hover: 0 12px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--ink);
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.65;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            font-family: "Newsreader", Georgia, serif;
+            color: var(--ink);
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        p {
+            color: var(--ink-soft);
+            font-size: 1.05rem;
+        }
+
+        a {
+            color: var(--accent);
+            transition: all 0.2s ease;
+        }
+
+        a:hover {
+            color: var(--accent-text);
+            text-decoration: none;
+        }
+
+        /* Top Sticky Language Bar */
+        .top-navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(250, 248, 244, 0.94);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--hairline);
+            padding: 9px 0;
+            transition: all 0.3s ease;
+        }
+
+        .lang-switch-container {
+            display: inline-flex;
+            align-items: center;
+            background: var(--bg-subtle);
+            border: 1px solid var(--hairline-strong);
+            border-radius: 30px;
+            padding: 3px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+        }
+
+        .lang-btn {
+            border: none;
+            background: transparent;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--ink-soft);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .lang-btn.active {
+            background: var(--bg-elevated);
+            color: var(--ink);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .flag-icon {
+            width: 20px;
+            height: 14px;
+            object-fit: cover;
+            border-radius: 2px;
+            box-shadow: 0 0 1px rgba(0, 0, 0, 0.3);
+            display: inline-block;
+        }
+
+        /* Author links with sliding underline */
+        .author-link {
+            position: relative;
+            text-decoration: none;
+            color: var(--ink);
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .author-link::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -2px;
+            width: 100%;
+            height: 2px;
+            background-color: var(--accent);
+            transform: scaleX(0);
+            transform-origin: left center;
+            transition: transform 0.25s ease;
+        }
+
+        .author-link:hover::after {
+            transform: scaleX(1);
+        }
+
+        .author-link:hover {
+            color: var(--accent);
+        }
+
+        /* Venue badge */
+        .venue-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #005baa 0%, #003a6c 100%);
+            color: #ffffff;
+            font-size: 1.05rem;
+            font-weight: 700;
+            padding: 8px 22px;
+            border-radius: 30px;
+            box-shadow: 0 4px 15px rgba(0, 91, 170, 0.25);
+            letter-spacing: 0.4px;
+            margin: 14px 0 20px 0;
+        }
+
+        .oral-pill {
+            background: #ffc107;
+            color: #212529;
+            font-size: 0.75rem;
+            font-weight: 800;
+            padding: 3px 9px;
+            border-radius: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Button group */
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            padding: 9px 18px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--ink);
+            background: var(--bg-elevated);
+            border: 1px solid var(--hairline-strong);
+            border-radius: 10px;
+            text-decoration: none;
+            margin: 5px;
+            transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.09);
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .action-btn i,
+        .action-btn svg {
+            font-size: 1.1rem;
+        }
+
+        /* Stat cards */
+        .stat-card {
+            border-radius: var(--radius-md);
+            padding: 20px 16px;
+            text-align: center;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .stat-card .stat-icon {
+            font-size: 26px;
+            margin-bottom: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover .stat-icon {
+            transform: scale(1.25) rotate(-6deg);
+        }
+
+        .stat-card .stat-value {
+            font-size: 2.3rem;
+            font-weight: 800;
+            font-family: "Newsreader", serif;
+            line-height: 1.1;
+        }
+
+        .stat-card .stat-label {
+            font-weight: 700;
+            font-size: 0.88rem;
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-card .stat-sub {
+            font-size: 0.82rem;
+            margin-top: 2px;
+            opacity: 0.85;
+        }
+
+        .stat-card.c1 {
+            background: #eaf1fb;
+            border-color: #cbe0fa;
+        }
+
+        .stat-card.c1 .stat-label,
+        .stat-card.c1 .stat-value,
+        .stat-card.c1 .stat-icon {
+            color: #005baa;
+        }
+
+        .stat-card.c2 {
+            background: #eaf6ef;
+            border-color: #c4ebd4;
+        }
+
+        .stat-card.c2 .stat-label,
+        .stat-card.c2 .stat-value,
+        .stat-card.c2 .stat-icon {
+            color: #208752;
+        }
+
+        .stat-card.c3 {
+            background: #fdf3e7;
+            border-color: #fce2c2;
+        }
+
+        .stat-card.c3 .stat-label,
+        .stat-card.c3 .stat-value,
+        .stat-card.c3 .stat-icon {
+            color: #c46400;
+        }
+
+        .stat-card.c4 {
+            background: #f4eefc;
+            border-color: #dfcefa;
+        }
+
+        .stat-card.c4 .stat-label,
+        .stat-card.c4 .stat-value,
+        .stat-card.c4 .stat-icon {
+            color: #6236bb;
+        }
+
+        /* Highlight cards */
+        .highlight-card {
+            border: 1px solid var(--hairline);
+            border-radius: var(--radius-md);
+            padding: 22px 20px;
+            background-color: var(--bg-elevated);
+            box-shadow: var(--shadow-subtle);
+            height: 100%;
+            text-align: left;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .highlight-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+            border-color: var(--hairline-strong);
+        }
+
+        .highlight-card .highlight-icon {
+            font-size: 28px;
+            display: inline-block;
+            margin-bottom: 12px;
+            transition: transform 0.35s ease;
+        }
+
+        .highlight-card:hover .highlight-icon {
+            transform: scale(1.2) rotate(-8deg);
+        }
+
+        .highlight-card .highlight-title {
+            font-weight: 700;
+            font-size: 1.15rem;
+            margin-bottom: 8px;
+            color: var(--ink);
+            font-family: "Newsreader", serif;
+        }
+
+        .highlight-card p {
+            margin-bottom: 0;
+            font-size: 0.94rem;
+            line-height: 1.55;
+        }
+
+        /* Section titles */
+        .section-header {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-header i,
+        .section-header span.emoji {
+            font-size: 1.8rem;
+        }
+
+        /* Figures */
+        .figure-box {
+            background: var(--bg-elevated);
+            border: 1px solid var(--hairline);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            box-shadow: var(--shadow-subtle);
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .figure-box:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        .figure-hover {
+            max-width: 100%;
+            height: auto;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .figure-hover:hover {
+            transform: scale(1.015);
+        }
+
+        .figure-caption {
+            font-size: 0.95rem;
+            color: var(--ink-soft);
+            margin-top: 14px;
+            text-align: justify;
+        }
+
+        /* Result tables */
+        .result-table-wrap {
+            border: 1px solid var(--hairline);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            background: var(--bg-elevated);
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .result-table {
+            margin-bottom: 0;
+        }
+
+        .result-table th {
+            background-color: var(--bg-subtle);
+            color: var(--ink);
+            font-weight: 700;
+            font-size: 0.88rem;
+            border-bottom: 2px solid var(--hairline-strong);
+            text-align: center;
+            vertical-align: middle;
+            padding: 12px 10px;
+        }
+
+        .result-table td {
+            text-align: center;
+            vertical-align: middle;
+            font-size: 0.92rem;
+            border-top: 1px solid var(--hairline);
+            padding: 11px 10px;
+        }
+
+        .result-table th.model-cell,
+        .result-table td.model-cell {
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .result-table tr.ours-row td {
+            background-color: var(--accent-soft);
+            font-weight: 700;
+            color: var(--accent-text);
+        }
+
+        .result-table tr.ours-row:hover td {
+            background-color: #dbeaff !important;
+        }
+
+        .result-table tbody tr:not(.ours-row):hover td {
+            background-color: #f8f6f0;
+        }
+
+        .badge-best {
+            background: #208752;
+            color: white;
+            font-size: 0.72rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 4px;
+            font-weight: 700;
+        }
+
+        /* Conference Gallery */
+        .gallery-item {
+            position: relative;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            background: var(--bg-elevated);
+            border: 1px solid var(--hairline);
+            box-shadow: var(--shadow-subtle);
+            transition: all 0.35s cubic-bezier(0.165, 0.84, 0.44, 1);
+            cursor: pointer;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-7px);
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.16);
+            border-color: var(--hairline-strong);
+        }
+
+        .gallery-img-wrap {
+            width: 100%;
+            height: 260px;
+            overflow: hidden;
+            background: #222;
+            position: relative;
+        }
+
+        .gallery-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            transition: transform 0.5s ease;
+        }
+
+        .gallery-item:hover .gallery-img {
+            transform: scale(1.08);
+        }
+
+        .gallery-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0) 60%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            display: flex;
+            align-items: flex-end;
+            padding: 16px;
+        }
+
+        .gallery-item:hover .gallery-overlay {
+            opacity: 1;
+        }
+
+        .gallery-zoom-badge {
+            color: white;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 4px 10px;
+            border-radius: 20px;
+            backdrop-filter: blur(4px);
+        }
+
+        .gallery-caption {
+            padding: 14px 16px;
+            flex-grow: 1;
+        }
+
+        .gallery-title {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--ink);
+            margin-bottom: 4px;
+            font-family: "Newsreader", serif;
+        }
+
+        .gallery-sub {
+            font-size: 0.85rem;
+            color: var(--ink-soft);
+            line-height: 1.4;
+        }
+
+        /* Lightbox Modal */
+        .lightbox-modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            inset: 0;
+            background: rgba(10, 10, 12, 0.94);
+            backdrop-filter: blur(10px);
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .lightbox-modal.active {
+            display: flex;
+            animation: fadeIn 0.25s ease;
+        }
+
+        .lightbox-content {
+            max-width: 90vw;
+            max-height: 82vh;
+            border-radius: var(--radius-sm);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            object-fit: contain;
+        }
+
+        .lightbox-caption {
+            color: #f0f0f0;
+            margin-top: 14px;
+            font-size: 1.05rem;
+            text-align: center;
+            max-width: 800px;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 24px;
+            right: 28px;
+            color: #fff;
+            font-size: 32px;
+            cursor: pointer;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            transition: background 0.2s ease;
+        }
+
+        .lightbox-close:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        /* BibTeX Box */
+        .bibtex-box {
+            background: var(--bg-subtle);
+            border: 1px solid var(--hairline-strong);
+            border-radius: var(--radius-md);
+            padding: 18px 20px;
+            position: relative;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+            font-size: 0.88rem;
+            color: var(--ink);
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 6px 14px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: var(--bg-elevated);
+            border: 1px solid var(--hairline-strong);
+            border-radius: 6px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .copy-btn:hover {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        /* Scroll reveal animation */
+        .reveal {
+            opacity: 0;
+            transform: translateY(22px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .reveal.in-view {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        hr.divider {
+            border-top: 1px solid var(--hairline);
+            margin: 45px 0;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem !important;
+            }
+
+            h2 {
+                font-size: 1.3rem !important;
+            }
+
+            .venue-badge {
+                font-size: 0.9rem;
+                padding: 6px 16px;
+            }
+
+            .stat-card .stat-value {
+                font-size: 1.8rem;
+            }
+
+            .gallery-img-wrap {
+                height: 210px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Sticky Navigation & Bilingual Switcher -->
+    <nav class="top-navbar">
+        <div class="container d-flex justify-content-between align-items-center" style="max-width: 1040px;">
+            <div class="d-flex align-items-center gap-2">
+                <span
+                    style="font-weight: 800; font-size: 1.15rem; color: var(--accent); letter-spacing: -0.5px;">PER-MDD</span>
+                <span class="text-muted d-none d-sm-inline" style="font-size: 0.85rem; margin-left: 8px;">| IEEE ICASSP
+                    2025</span>
+            </div>
+
+            <!-- Language Switcher with VN & UK Flags -->
+            <div class="lang-switch-container">
+                <button type="button" class="lang-btn active" id="btn-lang-vi" onclick="setLanguage('vi')">
+                    <!-- SVG Flag of Vietnam -->
+                    <svg class="flag-icon" viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="30" height="20" fill="#da251d" />
+                        <polygon
+                            points="15,4 16.47,8.53 21.23,8.53 17.38,11.33 18.85,15.86 15,13.06 11.15,15.86 12.62,11.33 8.77,8.53 13.53,8.53"
+                            fill="#ff0" />
+                    </svg>
+                    <span>Tiếng Việt</span>
+                </button>
+                <button type="button" class="lang-btn" id="btn-lang-en" onclick="setLanguage('en')">
+                    <!-- SVG Flag of UK / English -->
+                    <svg class="flag-icon" viewBox="0 0 60 30" xmlns="http://www.w3.org/2000/svg">
+                        <clipPath id="s">
+                            <path d="M0,0 v30 h60 v-30 z" />
+                        </clipPath>
+                        <clipPath id="t">
+                            <path d="M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z" />
+                        </clipPath>
+                        <g clip-path="url(#s)">
+                            <path d="M0,0 v30 h60 v-30 z" fill="#012169" />
+                            <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6" />
+                            <path d="M0,0 L60,30 M60,0 L0,30" clip-path="url(#t)" stroke="#C8102E" stroke-width="4" />
+                            <path d="M30,0 v30 M0,15 h60" stroke="#fff" stroke-width="10" />
+                            <path d="M30,0 v30 M0,15 h60" stroke="#C8102E" stroke-width="6" />
+                        </g>
+                    </svg>
+                    <span>English</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container" style="max-width: 1040px; padding-top: 25px;">
+
+        <!-- Header Section -->
+        <header class="text-center pt-3 pb-2">
+            <h1 class="font-weight-bold" style="font-size: 2.7rem; line-height: 1.25; margin-bottom: 12px;">
+                <span class="lang-en d-none">Mispronunciation Detection and Diagnosis Without Model Training: A
+                    Retrieval-Based Approach</span>
+                <span class="lang-vi">Phát Hiện và Chẩn Đoán Lỗi Phát Âm Không Cần Huấn Luyện Mô Hình: Tiếp Cận Dựa Trên
+                    Truy Xuất</span>
+            </h1>
+
+            <h2 class="text-muted font-italic"
+                style="font-size: 1.45rem; font-weight: 500; max-width: 860px; margin: 0 auto 16px;">
+                <span class="lang-en d-none">A Novel Training-Free Speech RAG Framework for Computer-Assisted
+                    Pronunciation Training</span>
+                <span class="lang-vi">Mô hình Speech-RAG không cần huấn luyện cho hệ thống hỗ trợ phát âm tự động</span>
+            </h2>
+
+            <!-- Conference Badge -->
+            <div class="d-flex justify-content-center align-items-center flex-wrap gap-2">
+                <span class="venue-badge">
+                    <i class="fa-solid fa-microphone-lines"></i>
+                    <span>IEEE ICASSP 2025</span>
+                    <span class="oral-pill">
+                        <span class="lang-en d-none">Oral Presentation</span>
+                        <span class="lang-vi">Thuyết trình Oral</span>
+                    </span>
+                </span>
+            </div>
+
+            <!-- Authors list -->
+            <div class="my-3 font-weight-normal" style="font-size: 1.12rem; line-height: 2;">
+                <span class="author-link">Huu Tuong Tu<sup>1,2</sup></span> &nbsp;•&nbsp;
+                <span class="author-link">Ha Viet Khanh<sup>1</sup></span> &nbsp;•&nbsp;
+                <span class="author-link">Tran Tien Dat<sup>1</sup></span> &nbsp;•&nbsp;
+                <span class="author-link">Vu Huan<sup>3</sup></span> &nbsp;•&nbsp;
+                <span class="author-link">Thien Van Luong<sup>3</sup></span> &nbsp;•&nbsp;
+                <span class="author-link">Nguyen Tien Cuong<sup>2</sup></span> &nbsp;•&nbsp;
+                <span class="author-link font-weight-bold">Nguyen Thi Thu Trang<sup>1,*</sup></span>
+            </div>
+
+            <!-- Affiliations -->
+            <div class="mb-4 text-muted" style="font-size: 0.95rem; line-height: 1.6;">
+                <div>
+                    <strong><sup>1</sup></strong>
+                    <span class="lang-en d-none">Hanoi University of Science and Technology (HUST), Vietnam</span>
+                    <span class="lang-vi">Đại học Bách Khoa Hà Nội (HUST), Việt Nam</span>
+                    &nbsp;&nbsp;|&nbsp;&nbsp;
+                    <strong><sup>2</sup></strong>
+                    <span class="lang-en d-none">VNPT AI, VNPT Group, Vietnam</span>
+                    <span class="lang-vi">VNPT AI, Tập đoàn Bưu chính Viễn thông Việt Nam</span>
+                    &nbsp;&nbsp;|&nbsp;&nbsp;
+                    <strong><sup>3</sup></strong>
+                    <span class="lang-en d-none">National Economics University (NEU), Vietnam</span>
+                    <span class="lang-vi">Đại học Kinh tế Quốc dân (NEU), Việt Nam</span>
+                </div>
+                <div class="mt-1" style="font-size: 0.85rem; color: var(--ink-faint);">
+                    <span class="lang-en d-none"><sup>*</sup> Corresponding author:
+                        <code>trangntt@soict.hust.edu.vn</code></span>
+                    <span class="lang-vi"><sup>*</sup> Tác giả liên hệ: <code>trangntt@soict.hust.edu.vn</code></span>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex justify-content-center flex-wrap mb-4">
+                <a class="action-btn" href="https://arxiv.org/abs/2511.20107" target="_blank">
+                    <i class="fa-solid fa-file-lines text-danger"></i>
+                    <span>arXiv:2511.20107</span>
+                </a>
+                <a class="action-btn" href="2511.20107v1.pdf" target="_blank" download>
+                    <i class="fa-solid fa-file-pdf text-danger"></i>
+                    <span class="lang-en d-none">Download PDF</span>
+                    <span class="lang-vi">Tải bản PDF</span>
+                </a>
+                <a class="action-btn" href="https://github.com/VNPT-AI-Official/ICASSP2025-MDD" target="_blank">
+                    <i class="fa-brands fa-github text-dark"></i>
+                    <span>GitHub Code</span>
+                </a>
+                <a class="action-btn" href="#conference-gallery">
+                    <i class="fa-solid fa-images text-primary"></i>
+                    <span class="lang-en d-none">Conference Photos</span>
+                    <span class="lang-vi">Ảnh Hội Nghị</span>
+                </a>
+                <a class="action-btn" href="#bibtex-section">
+                    <i class="fa-solid fa-quote-left text-success"></i>
+                    <span>BibTeX</span>
+                </a>
+            </div>
+        </header>
+
+        <!-- Key Metrics Cards -->
+        <div class="row my-4">
+            <div class="col-md-3 col-6 mb-3">
+                <div class="stat-card c1">
+                    <div class="stat-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                    <div class="stat-value">4.43%</div>
+                    <div class="stat-label">FRR (False Rejection)</div>
+                    <div class="stat-sub">
+                        <span class="lang-en d-none">Lowest Error Rate (SOTA)</span>
+                        <span class="lang-vi">Thấp nhất (Vượt SOTA)</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="stat-card c2">
+                    <div class="stat-icon"><i class="fa-solid fa-chart-line"></i></div>
+                    <div class="stat-value">69.60%</div>
+                    <div class="stat-label">F1-Score</div>
+                    <div class="stat-sub">
+                        <span class="lang-en d-none">+6.56% Gain over SOTA</span>
+                        <span class="lang-vi">+6.56% Tăng trưởng SOTA</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="stat-card c3">
+                    <div class="stat-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                    <div class="stat-value">0 Epoch</div>
+                    <div class="stat-label">
+                        <span class="lang-en d-none">Training Cost</span>
+                        <span class="lang-vi">Chi phí huấn luyện</span>
+                    </div>
+                    <div class="stat-sub">
+                        <span class="lang-en d-none">100% Training-Free RAG</span>
+                        <span class="lang-vi">Hoàn toàn không cần train</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="stat-card c4">
+                    <div class="stat-icon"><i class="fa-solid fa-bullseye"></i></div>
+                    <div class="stat-value">90.42%</div>
+                    <div class="stat-label">Correctness</div>
+                    <div class="stat-sub">
+                        <span class="lang-en d-none">High Human Alignment</span>
+                        <span class="lang-vi">Tương đồng chuyên gia</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr class="divider">
+
+        <!-- 💡 Abstract Section -->
+        <section class="reveal my-5">
+            <h3 class="section-header">
+                <span>💡</span>
+                <span class="lang-en d-none">Abstract</span>
+                <span class="lang-vi">Tóm Tắt Bài Báo</span>
+            </h3>
+            <div class="p-4"
+                style="background: var(--bg-elevated); border: 1px solid var(--hairline); border-radius: var(--radius-md); box-shadow: var(--shadow-subtle);">
+                <p class="lang-en d-none mb-0" style="text-align: justify; font-size: 1.08rem; color: var(--ink);">
+                    <strong>Mispronunciation Detection and Diagnosis (MDD)</strong> is crucial for language learning and
+                    speech therapy. Unlike conventional methods that require scoring models or training phoneme-level
+                    models, we propose a <strong>novel training-free framework</strong> that leverages retrieval
+                    techniques with a pre-trained Automatic Speech Recognition (ASR) model. Our method avoids
+                    phoneme-specific modeling or additional task-specific training, while still achieving accurate
+                    detection and diagnosis of pronunciation errors. Experiments on the standard
+                    <strong>L2-ARCTIC</strong> benchmark show that our proposed <strong>PER-MDD</strong> achieves a
+                    superior <strong>F1 score of 69.60%</strong> and a standout <strong>False Rejection Rate (FRR) of
+                        only 4.43%</strong> while completely avoiding the overhead and complexity of model training.
+                </p>
+                <p class="lang-vi mb-0" style="text-align: justify; font-size: 1.08rem; color: var(--ink);">
+                    <strong>Phát hiện và Chẩn đoán Lỗi Phát âm (MDD)</strong> là nhiệm vụ then chốt trong học ngôn ngữ
+                    có máy tính hỗ trợ (CAPT) và trị liệu ngôn ngữ. Khác với các phương pháp truyền thống đòi hỏi xây
+                    dựng mô hình chấm điểm âm học phức tạp hoặc huấn luyện bổ sung các mô hình phân loại âm vị, chúng
+                    tôi đề xuất một <strong>khung nghiên cứu mới hoàn toàn không cần huấn luyện
+                        (training-free)</strong>, áp dụng kỹ thuật truy xuất (Retrieval) kết hợp với mô hình Nhận dạng
+                    giọng nói tự động (ASR) tiền huấn luyện quy mô lớn. Phương pháp của chúng tôi loại bỏ hoàn toàn gánh
+                    nặng huấn luyện mô hình chuyên biệt mà vẫn đạt được độ chuẩn xác cao trong phát hiện và chẩn đoán
+                    lỗi. Kết quả thực nghiệm trên tập dữ liệu chuẩn <strong>L2-ARCTIC</strong> chứng minh phương pháp
+                    <strong>PER-MDD</strong> đạt điểm <strong>F1 vượt bậc 69.60%</strong> và tỷ lệ từ chối sai (FRR) ấn
+                    tượng chỉ <strong>4.43%</strong>, vượt trội so với các mô hình SOTA hiện nay.
+                </p>
+            </div>
+        </section>
+
+        <!-- 🎯 Motivation & Key Challenges -->
+        <section class="reveal my-5">
+            <h3 class="section-header">
+                <span>🎯</span>
+                <span class="lang-en d-none">Core Challenges & Innovations</span>
+                <span class="lang-vi">Thách Thức Cốt Lõi & Đột Phá</span>
+            </h3>
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="highlight-card">
+                        <span class="highlight-icon text-primary"><i class="fa-solid fa-brain"></i></span>
+                        <div class="highlight-title">
+                            <span class="lang-en d-none">No Phoneme Model Training</span>
+                            <span class="lang-vi">Không Cần Train Mô Hình Âm Vị</span>
+                        </div>
+                        <p class="lang-en d-none">
+                            Traditional MDD models (CNN-RNN-CTC, cross-attention networks) require expensive training on
+                            annotated non-native speech corpora. PER-MDD leverages rich latent representations already
+                            captured in self-supervised ASR backbones (HuBERT).
+                        </p>
+                        <p class="lang-vi">
+                            Các hệ thống MDD trước đây đòi hỏi quy trình huấn luyện phức tạp và dữ liệu gán nhãn lớn.
+                            PER-MDD khai thác không gian biểu diễn ngữ âm sẵn có của mô hình ASR tự giám sát (HuBERT),
+                            loại bỏ hoàn toàn quá trình fine-tuning tốn kém.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-4">
+                    <div class="highlight-card">
+                        <span class="highlight-icon text-danger"><i class="fa-solid fa-heart-crack"></i></span>
+                        <div class="highlight-title">
+                            <span class="lang-en d-none">Minimizing Learner Frustration</span>
+                            <span class="lang-vi">Giảm Thiểu Tỷ Lệ Phạt Sai (FRR)</span>
+                        </div>
+                        <p class="lang-en d-none">
+                            False Rejection Rate (FRR) is the single most critical metric in CAPT: falsely judging a
+                            correct phoneme as wrong discourages learners. PER-MDD sets a new benchmark with only
+                            <strong>4.43% FRR</strong> (vs. 6.33%–9.18% in baselines).
+                        </p>
+                        <p class="lang-vi">
+                            Tỷ lệ từ chối sai (FRR) là chỉ số nhạy cảm nhất: đánh giá sai một âm đọc đúng sẽ gây chán
+                            nản cho người học. PER-MDD thiết lập chuẩn mực mới khi giảm FRR xuống chỉ còn
+                            <strong>4.43%</strong> (so với 6.33%–9.18% ở các mô hình trước).
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-4">
+                    <div class="highlight-card">
+                        <span class="highlight-icon text-success"><i class="fa-solid fa-database"></i></span>
+                        <div class="highlight-title">
+                            <span class="lang-en d-none">Speech-RAG Paradigm Shift</span>
+                            <span class="lang-vi">Đột Phá Kỹ Thuật Speech-RAG</span>
+                        </div>
+                        <p class="lang-en d-none">
+                            We reformulate pronunciation assessment as a nearest-neighbor vector search over a mid-frame
+                            phoneme embedding pool with cosine similarity filtering and majority voting, enabling
+                            lightning-fast query times.
+                        </p>
+                        <p class="lang-vi">
+                            Chuyển đổi bài toán chẩn đoán phát âm thành bài toán truy xuất láng giềng gần nhất (k-NN)
+                            trên kho vector nhúng âm vị đại diện (mid-frame), kết hợp ngưỡng lọc cosin và biểu quyết đa
+                            số mang lại tốc độ truy vấn cực nhanh.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 🔧 Proposed Method: PER-MDD -->
+        <section class="reveal my-5">
+            <h3 class="section-header">
+                <span>🔧</span>
+                <span class="lang-en d-none">Proposed Method: PER-MDD Architecture</span>
+                <span class="lang-vi">Phương Pháp Đề Xuất: Kiến Trúc PER-MDD</span>
+            </h3>
+
+            <div class="figure-box mb-4">
+                <img src="images/architecture.png" alt="PER-MDD Pipeline Architecture" class="figure-hover img-fluid"
+                    onclick="openLightbox('images/architecture.png', 'Figure 1: Illustration of our proposed PER-MDD framework.')">
+                <div class="figure-caption">
+                    <strong class="lang-en d-none">Figure 1: Illustration of our proposed PER-MDD method.</strong>
+                    <strong class="lang-vi">Hình 1: Sơ đồ phương pháp PER-MDD đề xuất.</strong>
+                    <span class="lang-en d-none">
+                        (A) <strong>Phoneme Embedding Pool Construction:</strong> Audio frames are passed through
+                        pre-trained ASR to generate frame embeddings, selecting mid-frame representations for each
+                        labeled phoneme span. (B) <strong>Inference Procedure:</strong> Test audio frames are extracted
+                        and queried against the pool using cosine similarity. The top-k candidates above threshold &tau;
+                        perform majority voting, followed by consecutive deduplication and blank removal to align with
+                        canonical phonemes.
+                    </span>
+                    <span class="lang-vi">
+                        (A) <strong>Xây dựng kho vector nhúng âm vị:</strong> Các frame âm thanh đi qua mô hình ASR tiền
+                        huấn luyện để trích xuất embedding, chọn biểu diễn frame chính giữa (mid-frame) cho mỗi khoảng
+                        âm vị. (B) <strong>Quy trình suy luận:</strong> Các frame âm thanh kiểm tra được truy xuất đối
+                        sánh với kho qua độ tương đồng cosin. Top-k ứng viên vượt ngưỡng &tau; được biểu quyết gán nhãn,
+                        tiếp theo là gom cụm các ký tự liên tiếp trùng lặp và loại bỏ khoảng trắng (blank) trước khi đối
+                        soát với âm vị chuẩn.
+                    </span>
+                </div>
+            </div>
+
+            <!-- Detailed Steps -->
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <div class="p-3"
+                        style="background: var(--bg-elevated); border: 1px solid var(--hairline); border-radius: 10px; height: 100%;">
+                        <h5 class="font-weight-bold" style="color: var(--accent);">
+                            <span class="badge badge-primary mr-1">1</span>
+                            <span class="lang-en d-none">Embedding Pool Construction</span>
+                            <span class="lang-vi">Xây Dựng Kho Vector Nhúng</span>
+                        </h5>
+                        <p class="small mb-0 text-muted">
+                            <span class="lang-en d-none">Extract frame-level embeddings
+                                <code>e<sub>t</sub> = f(x<sub>t</sub>)</code> from reference training utterances using
+                                pre-trained HuBERT. Mid-frame pooling is adopted as it isolates stable articulatory
+                                targets and drastically minimizes vector memory size.</span>
+                            <span class="lang-vi">Trích xuất vector đặc trưng từng frame
+                                <code>e<sub>t</sub> = f(x<sub>t</sub>)</code> từ tập câu nói mẫu bằng mô hình HuBERT.
+                                Chiến lược lấy frame chính giữa (mid-frame) giúp bắt trọn điểm phát âm chuẩn nhất và
+                                giảm tối đa kích thước lưu trữ.</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <div class="p-3"
+                        style="background: var(--bg-elevated); border: 1px solid var(--hairline); border-radius: 10px; height: 100%;">
+                        <h5 class="font-weight-bold" style="color: var(--accent);">
+                            <span class="badge badge-primary mr-1">2</span>
+                            <span class="lang-en d-none">Top-k Cosine Retrieval</span>
+                            <span class="lang-vi">Truy Xuất Cosine Top-k</span>
+                        </h5>
+                        <p class="small mb-0 text-muted">
+                            <span class="lang-en d-none">During inference, test frame queries <code>q<sub>t</sub></code>
+                                are matched against pool <code>P</code> via cosine similarity. Candidates are retrieved
+                                via Top-k search and filtered with confidence threshold &tau; = 0.7 to discard uncertain
+                                acoustic noise.</span>
+                            <span class="lang-vi">Khi suy luận, mỗi frame truy vấn <code>q<sub>t</sub></code> từ người
+                                học được tính độ tương đồng cosin với kho vector <code>P</code>. Top-k ứng viên được
+                                chọn lọc qua ngưỡng tin cậy &tau; = 0.7 nhằm loại trừ các tạp âm không chắc chắn.</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <div class="p-3"
+                        style="background: var(--bg-elevated); border: 1px solid var(--hairline); border-radius: 10px; height: 100%;">
+                        <h5 class="font-weight-bold" style="color: var(--accent);">
+                            <span class="badge badge-primary mr-1">3</span>
+                            <span class="lang-en d-none">Voting & CTC Alignment</span>
+                            <span class="lang-vi">Biểu Quyết & Căn Chỉnh Âm</span>
+                        </h5>
+                        <p class="small mb-0 text-muted">
+                            <span class="lang-en d-none">Labels are determined by majority voting (mode). Consecutive
+                                repeated phonemes are collapsed and blanks are removed (CTC-style post-processing),
+                                yielding the final sequence aligned against canonical targets for diagnosis.</span>
+                            <span class="lang-vi">Nhãn được xác định bằng phép biểu quyết đa số (mode). Các âm vị liên
+                                tiếp giống nhau được gom cụm và xóa nhãn rỗng (blank), tạo nên chuỗi âm vị chẩn đoán để
+                                đối soát trực tiếp với âm vị quy chuẩn.</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ✨ Quantitative Results -->
+        <section class="reveal my-5">
+            <h3 class="section-header">
+                <span>✨</span>
+                <span class="lang-en d-none">Quantitative Results & Benchmarks</span>
+                <span class="lang-vi">Kết Quả Định Lượng & So Sánh Chuẩn</span>
+            </h3>
+
+            <p>
+                <span class="lang-en d-none">Evaluation on the public <strong>L2-ARCTIC</strong> benchmark (speakers of
+                    Hindi, Korean, Mandarin, Spanish, Arabic, and Vietnamese). Bold indicates superior results.</span>
+                <span class="lang-vi">Đánh giá trên tập dữ liệu chuẩn quốc tế <strong>L2-ARCTIC</strong> (bao gồm người
+                    học từ Ấn Độ, Hàn Quốc, Trung Quốc, Tây Ban Nha, Ả Rập và Việt Nam). Giá trị in đậm thể hiện kết quả
+                    tốt nhất.</span>
+            </p>
+
+            <!-- Table 1: Benchmark Comparison -->
+            <div class="mb-4">
+                <h5 class="font-weight-bold mb-2">
+                    <span class="lang-en d-none">Table 1: Performance comparison between PER-MDD and SOTA
+                        baselines</span>
+                    <span class="lang-vi">Bảng 1: So sánh hiệu năng giữa PER-MDD và các mô hình SOTA</span>
+                </h5>
+                <div class="result-table-wrap">
+                    <div class="table-responsive">
+                        <table class="table result-table">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2" class="model-cell">Model</th>
+                                    <th colspan="7">MDD Metrics (%)</th>
+                                    <th colspan="2">ASR Metrics (%)</th>
+                                </tr>
+                                <tr>
+                                    <th>FRR &darr;</th>
+                                    <th>FAR &darr;</th>
+                                    <th>DER &darr;</th>
+                                    <th>PRE &uarr;</th>
+                                    <th>REC &uarr;</th>
+                                    <th>F1 &uarr;</th>
+                                    <th>DA &uarr;</th>
+                                    <th>PER &darr;</th>
+                                    <th>COR &uarr;</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="model-cell">PHN-M2 [Leung et al., 2019]</td>
+                                    <td>6.33</td>
+                                    <td>45.37</td>
+                                    <td><strong>25.12</strong></td>
+                                    <td>64.51</td>
+                                    <td>54.63</td>
+                                    <td>59.16</td>
+                                    <td>86.88</td>
+                                    <td>17.12</td>
+                                    <td>-</td>
+                                </tr>
+                                <tr>
+                                    <td class="model-cell">L1-MultiMDD [Interspeech 2021]</td>
+                                    <td>4.60</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td>57.40</td>
+                                    <td>-</td>
+                                    <td>12.55</td>
+                                    <td>-</td>
+                                </tr>
+                                <tr>
+                                    <td class="model-cell">w2v2-XLSR [Peng et al., 2021]</td>
+                                    <td>5.70</td>
+                                    <td>41.80</td>
+                                    <td>29.28</td>
+                                    <td>62.86</td>
+                                    <td>58.20</td>
+                                    <td>60.44</td>
+                                    <td>-</td>
+                                    <td>16.20</td>
+                                    <td>-</td>
+                                </tr>
+                                <tr>
+                                    <td class="model-cell">Joint-Align [Interspeech 2022]</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td><strong>77.12</strong></td>
+                                    <td>53.31</td>
+                                    <td>63.04</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                </tr>
+                                <tr>
+                                    <td class="model-cell">MDDGCN [ACL 2023]</td>
+                                    <td>9.18</td>
+                                    <td>38.03</td>
+                                    <td>25.24</td>
+                                    <td>51.90</td>
+                                    <td>61.97</td>
+                                    <td>56.49</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                </tr>
+                                <tr>
+                                    <td class="model-cell">MVmulti-MTseq [ICASSP 2024]</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                    <td>61.43</td>
+                                    <td>59.23</td>
+                                    <td>60.31</td>
+                                    <td>-</td>
+                                    <td><strong>14.13</strong></td>
+                                    <td>-</td>
+                                </tr>
+                                <tr class="ours-row">
+                                    <td class="model-cell">
+                                        <i class="fa-solid fa-star text-warning mr-1"></i>
+                                        <strong>PER-MDD (Ours)</strong>
+                                        <span class="badge badge-success ml-1">Training-Free</span>
+                                    </td>
+                                    <td><strong>4.43</strong> <span class="badge-best">Best</span></td>
+                                    <td><strong>32.44</strong> <span class="badge-best">Best</span></td>
+                                    <td>37.77</td>
+                                    <td>71.78</td>
+                                    <td><strong>67.56</strong> <span class="badge-best">Best</span></td>
+                                    <td><strong>69.60</strong> <span class="badge-best">+6.56%</span></td>
+                                    <td><strong>91.57</strong> <span class="badge-best">Best</span></td>
+                                    <td>104.08</td>
+                                    <td><strong>90.42</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="small text-muted mt-2">
+                    <span class="lang-en d-none">&darr; Lower is better. &uarr; Higher is better. PER-MDD attains the
+                        lowest FRR (4.43%) and highest F1 score (69.60%) across all published benchmarks.</span>
+                    <span class="lang-vi">&darr; Càng thấp càng tốt. &uarr; Càng cao càng tốt. PER-MDD đạt tỷ lệ từ chối
+                        sai FRR thấp nhất (4.43%) và điểm F1 cao nhất (69.60%) trong tất cả các nghiên cứu được công
+                        bố.</span>
+                </div>
+            </div>
+
+            <!-- Table 2: MDD Evaluation Example -->
+            <div class="mb-4">
+                <h5 class="font-weight-bold mb-2">
+                    <span class="lang-en d-none">Table 2: Illustrative MDD evaluation & diagnosis flow</span>
+                    <span class="lang-vi">Bảng 2: Ví dụ minh họa quy trình đánh giá & chẩn đoán lỗi MDD</span>
+                </h5>
+                <div class="result-table-wrap">
+                    <div class="table-responsive">
+                        <table class="table result-table mb-0">
+                            <tbody>
+                                <tr>
+                                    <th style="width: 250px; text-align: left;">
+                                        <span class="lang-en d-none">Canonical phonemes</span>
+                                        <span class="lang-vi">Âm vị chuẩn quy định</span>
+                                    </th>
+                                    <td><span class="badge badge-secondary" style="font-size: 1rem;">ae</span></td>
+                                    <td><span class="badge badge-secondary" style="font-size: 1rem;">d</span></td>
+                                    <td><span class="badge badge-secondary" style="font-size: 1rem;">v</span></td>
+                                    <td><span class="badge badge-secondary" style="font-size: 1rem;">ay</span></td>
+                                    <td><span class="badge badge-secondary" style="font-size: 1rem;">s</span></td>
+                                </tr>
+                                <tr>
+                                    <th style="text-align: left;">
+                                        <span class="lang-en d-none">Human-annotated phonemes</span>
+                                        <span class="lang-vi">Âm vị người nghe gán nhãn</span>
+                                    </th>
+                                    <td><span class="badge badge-success" style="font-size: 1rem;">ae</span></td>
+                                    <td><span class="badge badge-danger" style="font-size: 1rem;">t</span></td>
+                                    <td><span class="badge badge-success" style="font-size: 1rem;">v</span></td>
+                                    <td><span class="badge badge-danger" style="font-size: 1rem;">e y</span></td>
+                                    <td><span class="badge badge-danger" style="font-size: 1rem;">sh</span></td>
+                                </tr>
+                                <tr>
+                                    <th style="text-align: left;">
+                                        <span class="lang-en d-none">Predicted phonemes (PER-MDD)</span>
+                                        <span class="lang-vi">Âm vị mô hình dự đoán</span>
+                                    </th>
+                                    <td><span class="badge badge-success" style="font-size: 1rem;">ae</span></td>
+                                    <td><span class="badge badge-danger" style="font-size: 1rem;">d</span></td>
+                                    <td><span class="badge badge-danger" style="font-size: 1rem;">f</span></td>
+                                    <td><span class="badge badge-danger" style="font-size: 1rem;">e y</span></td>
+                                    <td><span class="badge badge-danger" style="font-size: 1rem;">z</span></td>
+                                </tr>
+                                <tr style="background: var(--bg-subtle);">
+                                    <th style="text-align: left;">
+                                        <span class="lang-en d-none">Diagnostic evaluation tag</span>
+                                        <span class="lang-vi">Phân loại chẩn đoán lỗi</span>
+                                    </th>
+                                    <td><strong class="text-success">TA</strong> <span class="small text-muted">(True
+                                            Accept)</span></td>
+                                    <td><strong class="text-warning">FA</strong> <span class="small text-muted">(False
+                                            Accept)</span></td>
+                                    <td><strong class="text-danger">FR</strong> <span class="small text-muted">(False
+                                            Reject)</span></td>
+                                    <td><strong class="text-info">TR / CD</strong> <span
+                                            class="small text-muted">(Correct Diag)</span></td>
+                                    <td><strong class="text-secondary">TR / DE</strong> <span
+                                            class="small text-muted">(Diag Error)</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table 3: Ablation Study Highlights -->
+            <div class="mb-4">
+                <h5 class="font-weight-bold mb-2">
+                    <span class="lang-en d-none">Table 3: Key Ablation Studies on Model Architectures &
+                        Strategies</span>
+                    <span class="lang-vi">Bảng 3: Nghiên cứu thực nghiệm thành phần (Ablation Study)</span>
+                </h5>
+                <div class="result-table-wrap">
+                    <div class="table-responsive">
+                        <table class="table result-table">
+                            <thead>
+                                <tr>
+                                    <th>Ablation Factor</th>
+                                    <th>Variant</th>
+                                    <th>F1 &uarr;</th>
+                                    <th>FRR &darr;</th>
+                                    <th>DER &darr;</th>
+                                    <th>COR &uarr;</th>
+                                    <th>Key Takeaway</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td rowspan="3" style="vertical-align: middle; font-weight: 600;">Backbone ASR Model
+                                    </td>
+                                    <td>Data2vec</td>
+                                    <td>63.93</td>
+                                    <td>10.04</td>
+                                    <td>47.85</td>
+                                    <td>-</td>
+                                    <td rowspan="3"
+                                        style="vertical-align: middle; text-align: left; font-size: 0.85rem;">
+                                        <span class="lang-en d-none">HuBERT provides significantly better phonetic
+                                            clustering than wav2vec2 or data2vec.</span>
+                                        <span class="lang-vi">HuBERT tạo không gian gom cụm âm vị vượt trội hơn hẳn
+                                            wav2vec2 và data2vec.</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Wav2vec2</td>
+                                    <td>69.17</td>
+                                    <td>6.81</td>
+                                    <td>43.54</td>
+                                    <td>-</td>
+                                </tr>
+                                <tr class="ours-row">
+                                    <td><strong>HuBERT (Selected)</strong></td>
+                                    <td><strong>69.60</strong></td>
+                                    <td><strong>4.43</strong></td>
+                                    <td><strong>37.77</strong></td>
+                                    <td><strong>90.42</strong></td>
+                                </tr>
+                                <tr>
+                                    <td rowspan="3" style="vertical-align: middle; font-weight: 600;">Pooling Strategy
+                                    </td>
+                                    <td>All-frame</td>
+                                    <td>62.90</td>
+                                    <td>5.82</td>
+                                    <td>41.98</td>
+                                    <td>-</td>
+                                    <td rowspan="3"
+                                        style="vertical-align: middle; text-align: left; font-size: 0.85rem;">
+                                        <span class="lang-en d-none">Mid-frame pooling achieves highest accuracy while
+                                            keeping index size minimal and fast.</span>
+                                        <span class="lang-vi">Mid-frame pooling vừa đạt độ chính xác cao nhất vừa tối ưu
+                                            tốc độ truy vấn k-NN.</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Mean-frame</td>
+                                    <td>66.61</td>
+                                    <td>5.30</td>
+                                    <td>42.81</td>
+                                    <td>-</td>
+                                </tr>
+                                <tr class="ours-row">
+                                    <td><strong>Mid-frame (Selected)</strong></td>
+                                    <td><strong>69.60</strong></td>
+                                    <td><strong>4.43</strong></td>
+                                    <td><strong>37.77</strong></td>
+                                    <td><strong>90.42</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <hr class="divider">
+
+        <!-- 📸 Conference Gallery Section -->
+        <section class="reveal my-5" id="conference-gallery">
+            <div class="d-flex justify-content-between align-items-end flex-wrap mb-4">
+                <div>
+                    <h3 class="section-header mb-1">
+                        <span>📸</span>
+                        <span class="lang-en d-none">Conference Moments at ICASSP</span>
+                        <span class="lang-vi">Hình Ảnh Trực Tiếp Tại Hội Nghị ICASSP</span>
+                    </h3>
+                    <p class="text-muted mb-0">
+                        <span class="lang-en d-none">Oral presentation, technical session SLP-L7, and poster exhibition
+                            by the research team from VNPT AI.</span>
+                        <span class="lang-vi">Hình ảnh buổi thuyết trình Oral, phiên báo cáo SLP-L7 và khu triển lãm của
+                            nhóm nghiên cứu VNPT AI.</span>
+                    </p>
+                </div>
+                <div class="badge badge-primary px-3 py-2 font-weight-bold"
+                    style="border-radius: 20px; font-size: 0.88rem; background: var(--accent);">
+                    <i class="fa-solid fa-camera mr-1"></i> 5 Photos
+                </div>
+            </div>
+
+            <!-- Gallery Grid -->
+            <div class="row">
+                <!-- Photo 1: Big Screen Benchmark Presentation -->
+                <div class="col-lg-6 col-md-6 mb-4">
+                    <div class="gallery-item"
+                        onclick="openLightbox('images/icassp_conf_4.png', 'Thuyết trình kết quả thực nghiệm và bảng so sánh các chỉ số SOTA trên sân khấu hội nghị ICASSP')">
+                        <div class="gallery-img-wrap" style="height: 310px;">
+                            <img src="images/icassp_conf_4.png" alt="Oral Presentation at ICASSP" class="gallery-img">
+                            <div class="gallery-overlay">
+                                <span class="gallery-zoom-badge"><i class="fa-solid fa-magnifying-glass-plus"></i> Phóng
+                                    to</span>
+                            </div>
+                        </div>
+                        <div class="gallery-caption">
+                            <div class="gallery-title">
+                                <span class="lang-en d-none">Oral Stage Presentation: Benchmark Results</span>
+                                <span class="lang-vi">Thuyết Trình Sân Khấu: Kết Quả Thực Nghiệm & Baseline</span>
+                            </div>
+                            <div class="gallery-sub">
+                                <span class="lang-en d-none">Presenting Table 1 on the main hall projector, showing
+                                    PER-MDD achieving 4.43% FRR and 90.42% phoneme correctness.</span>
+                                <span class="lang-vi">Tác giả báo cáo Bảng so sánh 1 trên màn chiếu hội trường chính,
+                                    khẳng định mức FRR 4.43% thấp kỷ lục và độ đúng 90.42%.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Photo 2: Speech-RAG Paradigm Shift -->
+                <div class="col-lg-6 col-md-6 mb-4">
+                    <div class="gallery-item"
+                        onclick="openLightbox('images/icassp_conf_5.png', 'Báo cáo phương pháp đề xuất: Chuyển dịch sang mô hình Speech-based RAG')">
+                        <div class="gallery-img-wrap" style="height: 310px;">
+                            <img src="images/icassp_conf_5.png" alt="Proposed Speech-RAG Approach" class="gallery-img">
+                            <div class="gallery-overlay">
+                                <span class="gallery-zoom-badge"><i class="fa-solid fa-magnifying-glass-plus"></i> Phóng
+                                    to</span>
+                            </div>
+                        </div>
+                        <div class="gallery-caption">
+                            <div class="gallery-title">
+                                <span class="lang-en d-none">The Paradigm Shift: Speech-based RAG</span>
+                                <span class="lang-vi">Đổi Mới Mô Hình: Speech-based RAG Cho MDD</span>
+                            </div>
+                            <div class="gallery-sub">
+                                <span class="lang-en d-none">Explaining how pre-trained ASR embeddings act as keys for
+                                    fast phoneme pool retrieval without dedicated acoustic model training.</span>
+                                <span class="lang-vi">Minh họa trực quan cách thức trích xuất vector nhúng làm khóa tra
+                                    cứu trên kho dữ liệu thay vì huấn luyện mô hình âm học phức tạp.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Photo 3: Session Schedule Screen -->
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="gallery-item"
+                        onclick="openLightbox('images/icassp_conf_3.png', 'Màn hình lịch trình chính thức của phiên báo cáo Session SLP-L7: Discourse, Dialogue, and Language Learning tại Phòng 114')">
+                        <div class="gallery-img-wrap" style="height: 270px;">
+                            <img src="images/icassp_conf_3.png" alt="Session SLP-L7 Room 114" class="gallery-img">
+                            <div class="gallery-overlay">
+                                <span class="gallery-zoom-badge"><i class="fa-solid fa-magnifying-glass-plus"></i> Phóng
+                                    to</span>
+                            </div>
+                        </div>
+                        <div class="gallery-caption">
+                            <div class="gallery-title">
+                                <span class="lang-en d-none">Session SLP-L7 Official Schedule</span>
+                                <span class="lang-vi">Màn Hình Lịch Báo Cáo Phiên SLP-L7</span>
+                            </div>
+                            <div class="gallery-sub">
+                                <span class="lang-en d-none">Room 114: Discourse, Dialogue, and Language Learning,
+                                    featuring paper SLP-L7.5 by authors from HUST, VNPT AI, and NEU.</span>
+                                <span class="lang-vi">Phòng 114: Phiên ngôn ngữ và đối thoại với bài báo SLP-L7.5 của
+                                    nhóm tác giả Đại học Bách Khoa Hà Nội, VNPT AI và NEU.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Photo 4: Poster Exhibition Hall -->
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="gallery-item"
+                        onclick="openLightbox('images/icassp_conf_2.png', 'Tác giả bên poster nghiên cứu trong không gian triển lãm học thuật ICASSP')">
+                        <div class="gallery-img-wrap" style="height: 270px;">
+                            <img src="images/icassp_conf_2.png" alt="Poster Exhibition at ICASSP" class="gallery-img">
+                            <div class="gallery-overlay">
+                                <span class="gallery-zoom-badge"><i class="fa-solid fa-magnifying-glass-plus"></i> Phóng
+                                    to</span>
+                            </div>
+                        </div>
+                        <div class="gallery-caption">
+                            <div class="gallery-title">
+                                <span class="lang-en d-none">Poster Session & Discussions</span>
+                                <span class="lang-vi">Khu Vực Báo Cáo Poster & Thảo Luận</span>
+                            </div>
+                            <div class="gallery-sub">
+                                <span class="lang-en d-none">Author presenting in VNPT AI uniform alongside academic
+                                    posters in the international conference exhibition hall.</span>
+                                <span class="lang-vi">Tác giả trong trang phục VNPT AI giới thiệu công trình nghiên cứu
+                                    và giao lưu cùng các nhà khoa học quốc tế.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Photo 5: Official Conference Photo Wall -->
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="gallery-item"
+                        onclick="openLightbox('images/icassp_conf_1.png', 'Nhóm tác giả chụp ảnh lưu niệm tại backdrop chính thức của Hội nghị IEEE ICASSP')">
+                        <div class="gallery-img-wrap" style="height: 270px;">
+                            <img src="images/icassp_conf_1.png" alt="ICASSP Conference Backdrop" class="gallery-img">
+                            <div class="gallery-overlay">
+                                <span class="gallery-zoom-badge"><i class="fa-solid fa-magnifying-glass-plus"></i> Phóng
+                                    to</span>
+                            </div>
+                        </div>
+                        <div class="gallery-caption">
+                            <div class="gallery-title">
+                                <span class="lang-en d-none">IEEE ICASSP Backdrop Wall</span>
+                                <span class="lang-vi">Check-in Backdrop Hội Nghị Quốc Tế</span>
+                            </div>
+                            <div class="gallery-sub">
+                                <span class="lang-en d-none">Authors posing at the official IEEE Signal Processing
+                                    Society conference photo area.</span>
+                                <span class="lang-vi">Các tác giả ghi lại dấu ấn tại phông nền chính thức của Hội thảo
+                                    Quốc tế về Xử lý Tín hiệu và Âm thanh IEEE.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <hr class="divider">
+
+        <!-- 📚 BibTeX Citation Section -->
+        <section class="reveal my-5" id="bibtex-section">
+            <h3 class="section-header">
+                <span>📚</span>
+                <span class="lang-en d-none">Citation</span>
+                <span class="lang-vi">Trích Dẫn Bài Báo (BibTeX)</span>
+            </h3>
+            <p>
+                <span class="lang-en d-none">If you find this research work or retrieval-based approach useful for your
+                    work, please cite:</span>
+                <span class="lang-vi">Nếu nghiên cứu hoặc hướng tiếp cận Speech-RAG này hữu ích cho công việc của bạn,
+                    xin vui lòng trích dẫn theo định dạng:</span>
+            </p>
+
+            <div class="bibtex-box">
+                <button type="button" class="copy-btn" onclick="copyBibtex()">
+                    <i class="fa-regular fa-copy"></i>
+                    <span id="copy-btn-text">Copy BibTeX</span>
+                </button>
+                <pre id="bibtex-code" style="margin: 0; color: inherit; font-family: inherit; font-size: inherit;">@inproceedings{tu2025mispronunciation,
+  title     = {Mispronunciation Detection and Diagnosis Without Model Training: A Retrieval-Based Approach},
+  author    = {Tu, Huu Tuong and Ha, Viet Khanh and Tran, Tien Dat and Vu, Huan and Luong, Thien Van and Nguyen, Tien Cuong and Nguyen, Thi Thu Trang},
+  booktitle = {IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)},
+  year      = {2025},
+  url       = {https://arxiv.org/abs/2511.20107}
+}</pre>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="mt-5 pt-4 pb-5 border-top text-center text-muted"
+            style="border-top-color: var(--hairline) !important;">
+            <div class="d-flex justify-content-center align-items-center flex-wrap gap-4 mb-3">
+                <span class="font-weight-bold" style="color: var(--accent); font-size: 1.1rem;">VNPT AI</span>
+            </div>
+            <p class="small mb-1">
+                <span class="lang-en d-none">Designed with warm editorial aesthetics inspired by academic research
+                    showcases.</span>
+                <span class="lang-vi">Trang giới thiệu công trình nghiên cứu khoa học song ngữ chuẩn hội nghị quốc
+                    tế.</span>
+            </p>
+            <p class="small text-muted mb-0">
+                &copy; 2025 Authors & Collaborating Institutions. All rights reserved.
+            </p>
+        </footer>
+
+    </div>
+
+    <!-- Image Lightbox Modal -->
+    <div id="lightbox" class="lightbox-modal" onclick="closeLightbox(event)">
+        <span class="lightbox-close" onclick="closeLightbox(event)">&times;</span>
+        <img id="lightbox-img" class="lightbox-content" src="" alt="Enlarged photo">
+        <div id="lightbox-caption" class="lightbox-caption"></div>
+    </div>
+
+    <!-- JavaScript for Language Switcher, Lightbox, and Scroll Effects -->
+    <script>
+        // Language switching logic
+        function setLanguage(lang) {
+            const isVi = (lang === 'vi');
+
+            // Toggle active button state
+            document.getElementById('btn-lang-vi').classList.toggle('active', isVi);
+            document.getElementById('btn-lang-en').classList.toggle('active', !isVi);
+
+            // Toggle text visibility
+            const viElements = document.querySelectorAll('.lang-vi');
+            const enElements = document.querySelectorAll('.lang-en');
+
+            viElements.forEach(el => {
+                if (isVi) {
+                    el.classList.remove('d-none');
+                } else {
+                    el.classList.add('d-none');
+                }
+            });
+
+            enElements.forEach(el => {
+                if (!isVi) {
+                    el.classList.remove('d-none');
+                } else {
+                    el.classList.add('d-none');
+                }
+            });
+
+            // Update HTML lang attribute
+            document.documentElement.lang = lang;
+
+            // Save preference to localStorage
+            try {
+                localStorage.setItem('per_mdd_lang', lang);
+            } catch (e) { }
+        }
+
+        // Initialize language from localStorage or default to Vietnamese
+        document.addEventListener('DOMContentLoaded', () => {
+            let savedLang = 'vi';
+            try {
+                savedLang = localStorage.getItem('per_mdd_lang') || 'vi';
+            } catch (e) { }
+            setLanguage(savedLang);
+
+            // Scroll reveal observer
+            const reveals = document.querySelectorAll('.reveal');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('in-view');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            reveals.forEach(el => observer.observe(el));
+        });
+
+        // Lightbox functions
+        function openLightbox(src, caption) {
+            const modal = document.getElementById('lightbox');
+            const img = document.getElementById('lightbox-img');
+            const cap = document.getElementById('lightbox-caption');
+            img.src = src;
+            cap.innerText = caption;
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox(e) {
+            if (e.target.id === 'lightbox' || e.target.classList.contains('lightbox-close')) {
+                const modal = document.getElementById('lightbox');
+                modal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        // Close on ESC key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('lightbox');
+                if (modal.classList.contains('active')) {
+                    modal.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                }
+            }
+        });
+
+        // Copy BibTeX functionality
+        function copyBibtex() {
+            const code = document.getElementById('bibtex-code').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                const btnText = document.getElementById('copy-btn-text');
+                const originalText = btnText.innerText;
+                btnText.innerHTML = '<i class="fa-solid fa-check text-success"></i> Copied!';
+                setTimeout(() => {
+                    btnText.innerText = originalText;
+                }, 2000);
+            }).catch(err => {
+                console.error('Copy failed', err);
+            });
+        }
+    </script>
+</body>
+
+</html>
